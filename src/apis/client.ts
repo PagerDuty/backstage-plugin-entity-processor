@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import type { RequestInit, Response } from 'node-fetch';
 import type { EntityMapping } from '../types';
 import { DiscoveryService, LoggerService } from '@backstage/backend-plugin-api';
+import { PagerDutyEntityMappingResponse } from '@pagerduty/backstage-plugin-common';
 
 export interface PagerDutyClientOptions {
     discovery: DiscoveryService;
@@ -18,6 +19,7 @@ export class PagerDutyClient {
     private discovery: DiscoveryService;
     private logger: LoggerService;
     private baseUrl: string = "";
+    
     constructor({ discovery, logger }: PagerDutyClientOptions) {
         this.discovery = discovery;
         this.logger = logger;
@@ -42,31 +44,28 @@ export class PagerDutyClient {
             'pagerduty',
         )}/mapping/entity/${type}/${namespace}/${name}`;
 
-
         try {
             response = await fetch(url, options);
+
+            const foundMapping: PagerDutyEntityMappingResponse = await response.json();                    
+
+            switch (response.status) {
+                case 400:                    
+                    throw new Error(await response.text());
+                case 404:
+                    return {};
+                default: // 200
+                    this.logger.debug(`Found mapping for ${type}:${namespace}/${name}: ${JSON.stringify(foundMapping.mapping)}`);
+
+                    return {
+                        serviceId: foundMapping.mapping.serviceId,
+                        integrationKey: foundMapping.mapping.integrationKey,
+                        entityRef: foundMapping.mapping.entityRef
+                    }
+            }
         } catch (error) {
+            this.logger.error(`Failed to retrieve mapping for ${type}:${namespace}/${name}: ${error}`);
             throw new Error(`Failed to retrieve mapping for ${type}:${namespace}/${name}: ${error}`);
-        }
-
-        switch (response.status) {
-            case 400:
-                const errorMessage = await response.text();
-                this.logger.error(`Error retrieving mapping for ${type}:${namespace}/${name}: ${errorMessage}`);
-                throw new Error(errorMessage);
-            case 404:
-                return {};
-            default: // 200
-                const foundMapping = await response.json();
-                const mapping : EntityMapping = foundMapping.mapping;
-
-                this.logger.debug(`Found mapping for ${type}:${namespace}/${name}: ${JSON.stringify(mapping)}`);
-
-                return {
-                    serviceId: mapping.serviceId,
-                    integrationKey: mapping.integrationKey,
-                    entityRef: mapping.entityRef
-                }
         }
     }
 
