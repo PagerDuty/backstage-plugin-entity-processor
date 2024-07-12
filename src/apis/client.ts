@@ -60,7 +60,8 @@ export class PagerDutyClient {
                     return {
                         serviceId: foundMapping.mapping.serviceId,
                         integrationKey: foundMapping.mapping.integrationKey,
-                        entityRef: foundMapping.mapping.entityRef
+                        entityRef: foundMapping.mapping.entityRef,
+                        account: foundMapping.mapping.account,
                     }
             }
         } catch (error) {
