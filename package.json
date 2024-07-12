@@ -37,7 +37,7 @@
     "@backstage/catalog-model": "^1.5.0",
     "@backstage/config": "^1.2.0",
     "@backstage/plugin-catalog-node": "^1.12.2",
-    "@pagerduty/backstage-plugin-common": "0.1.5",
+    "@pagerduty/backstage-plugin-common": "0.2.0",
     "@rjsf/core": "^5.14.3",
     "node-fetch": "^2.6.7",
     "winston": "^3.2.1",

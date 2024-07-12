@@ -57,7 +57,14 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
                         delete entity.metadata.annotations!["pagerduty.com/integration-key"];
                     }
 
-                    this.logger.debug(`Added annotations to entity ${entity.metadata.name} with service id: ${mapping.serviceId} and integration key: ${mapping.integrationKey}`);
+                    if (mapping.account && mapping.account !== "") {
+                        entity.metadata.annotations!["pagerduty.com/account"] = mapping.account;
+                    }
+                    else {
+                        delete entity.metadata.annotations!["pagerduty.com/account"];
+                    }
+
+                    this.logger.debug(`Added annotations to entity ${entity.metadata.name} with service id: ${mapping.serviceId}, integration key: ${mapping.integrationKey} and account: ${mapping.account}`);
                 } else {
                     this.logger.debug(`No mapping found for entity: ${entity.metadata.name}`);
                 }

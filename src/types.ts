@@ -16,4 +16,5 @@ export type EntityMapping = {
     serviceId?: string;
     integrationKey?: string;
     entityRef?: string;
+    account?: string;
 }
