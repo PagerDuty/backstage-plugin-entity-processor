@@ -1,6 +1,6 @@
 import { DiscoveryService, LoggerService } from "@backstage/backend-plugin-api";
-import { Entity } from "@backstage/catalog-model";
-import { CatalogProcessor, CatalogProcessorEmit } from "@backstage/plugin-catalog-node";
+import { Entity, RELATION_DEPENDS_ON, RELATION_DEPENDENCY_OF } from "@backstage/catalog-model";
+import { CatalogProcessor, CatalogProcessorEmit, processingResult } from "@backstage/plugin-catalog-node";
 import { LocationSpec } from "@backstage/plugin-catalog-common";
 import { PagerDutyClient } from "../apis/client";
 
@@ -190,9 +190,14 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
                                 break;
                             case "pagerduty":
                                 // Update dependencies on Backstage with dependenciesMissingInBackstage
-                                this.logger.debug(`Updating dependencies on Backstage with: ${JSON.stringify(dependenciesMissingInBackstage)}`);
+                                
+                                // !!!
+                                // This is not supported yet due to a limitation on Backstage side
+                                // that prevents a full override of the dependencies once they are
+                                // set on the entity configuration file
+                                // !!!
 
-                                entity.spec!.dependsOn = addServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
+                                // entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit, true);
 
                                 break;
                             case "both":
@@ -205,11 +210,11 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
                                 }
 
                                 // Add missing dependencies to Backstage
-                                entity.spec!.dependsOn = addServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
+                                entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
 
                                 break;
                             default:
-                                // Do nothing. Stragety not defined or set to disabled
+                                // Do nothing. Strategy not defined or set to disabled
                                 break;
                         }
                     }
@@ -224,12 +229,12 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
     }
 }
 
-export function addServiceDependencyAnnotations(entity: Entity, mappingsDic: Record<string, string>, dependencies: string[], emit: CatalogProcessorEmit): string[] {
+export function refreshServiceDependencyAnnotations(entity: Entity, mappingsDic: Record<string, string>, dependencies: string[], emit: CatalogProcessorEmit, replace = false): string[] {
     const dependencyList: string[] = [];
     dependencies.forEach((dependencyId) => {
         const foundEntityRef = mappingsDic[dependencyId];
 
-        if (foundEntityRef) {
+        if (foundEntityRef && foundEntityRef !== "") {
             dependencyList.push(foundEntityRef);
 
             const entityRefParts = foundEntityRef.split(":");
@@ -238,39 +243,33 @@ export function addServiceDependencyAnnotations(entity: Entity, mappingsDic: Rec
             const namespace = namespaceName[0];
             const name = namespaceName[1];
 
-            emit({
-                relation: {
-                    source: {
-                        kind: entity.kind,
-                        namespace: entity.metadata.namespace!,
-                        name: entity.metadata.name,
-                    },
-                    target: {
-                        kind: kind,
-                        namespace: namespace,
-                        name: name,
-                    },
-                    type: "dependsOn",
+            emit(processingResult.relation({
+                source: {
+                    kind: entity.kind,
+                    namespace: entity.metadata.namespace!,
+                    name: entity.metadata.name,
                 },
-                type: "relation"
-            });
-
-            emit({
-                relation: {
-                    source: {
-                        kind: kind,
-                        namespace: namespace,
-                        name: name,
-                    },
-                    target: {
-                        kind: entity.kind,
-                        namespace: entity.metadata.namespace!,
-                        name: entity.metadata.name,
-                    },
-                    type: "dependencyOf",
+                target: {
+                    kind: kind,
+                    namespace: namespace,
+                    name: name,
                 },
-                type: "relation"
-            });
+                type: RELATION_DEPENDS_ON,
+            }));
+            
+            emit(processingResult.relation({
+                source: {
+                    kind: kind,
+                    namespace: namespace,
+                    name: name,
+                },
+                target: {
+                    kind: entity.kind,
+                    namespace: entity.metadata.namespace!,
+                    name: entity.metadata.name,
+                },
+                type: RELATION_DEPENDENCY_OF,
+            }));
         }
     });
 
