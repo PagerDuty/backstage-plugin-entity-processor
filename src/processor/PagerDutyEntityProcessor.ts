@@ -197,7 +197,7 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
                                 // set on the entity configuration file
                                 // !!!
 
-                                // entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit, true);
+                                // entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
 
                                 break;
                             case "both":
@@ -229,7 +229,7 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
     }
 }
 
-export function refreshServiceDependencyAnnotations(entity: Entity, mappingsDic: Record<string, string>, dependencies: string[], emit: CatalogProcessorEmit, replace = false): string[] {
+export function refreshServiceDependencyAnnotations(entity: Entity, mappingsDic: Record<string, string>, dependencies: string[], emit: CatalogProcessorEmit): string[] {
     const dependencyList: string[] = [];
     dependencies.forEach((dependencyId) => {
         const foundEntityRef = mappingsDic[dependencyId];
