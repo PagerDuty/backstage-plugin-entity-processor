@@ -10,7 +10,9 @@
     "types": "dist/index.d.ts"
   },
   "backstage": {
-    "role": "backend-plugin-module"
+    "role": "backend-plugin-module",
+    "pluginId": "catalog",
+    "pluginPackage": "pagerduty-entity-processor"
   },
   "homepage": "https://pagerduty.github.io/backstage-plugin-docs/index.html",
   "repository": {
@@ -31,13 +33,14 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-common": "^0.21.6",
-    "@backstage/backend-defaults": "^0.2.16",
-    "@backstage/backend-plugin-api": "^0.6.20",
+    "@backstage/backend-common": "^0.23.3",
+    "@backstage/backend-defaults": "^0.4.1",
+    "@backstage/backend-plugin-api": "^0.7.0",
     "@backstage/catalog-model": "^1.5.0",
     "@backstage/config": "^1.2.0",
-    "@backstage/plugin-catalog-node": "^1.12.2",
-    "@pagerduty/backstage-plugin-common": "0.2.0",
+    "@backstage/plugin-catalog-common": "^1.0.25",
+    "@backstage/plugin-catalog-node": "^1.12.4",
+    "@pagerduty/backstage-plugin-common": "0.2.1",
     "@rjsf/core": "^5.14.3",
     "node-fetch": "^2.6.7",
     "winston": "^3.2.1",
@@ -45,7 +48,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.24.0",
+    "@backstage/cli": "^0.26.11",
     "@types/node": "^20.9.2",
     "@types/node-fetch": "2.6.11",
     "@types/supertest": "^2.0.12",
