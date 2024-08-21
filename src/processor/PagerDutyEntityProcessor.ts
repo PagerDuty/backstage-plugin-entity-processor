@@ -36,6 +36,21 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
         return "PagerDutyEntityProcessor";
     }
 
+    async preProcessEntity(entity: Entity): Promise<Entity> {
+        if (this.shouldProcessEntity(entity)) {
+            const strategySetting = await client.getServiceDependencyStrategySetting();
+
+            if (strategySetting && strategySetting === "pagerduty") {
+                if (entity.spec?.dependsOn){
+                    // empty the dependsOn array
+                    entity.spec.dependsOn = [];
+                }
+            }
+        }
+
+        return entity;
+    }
+
     async postProcessEntity(entity: Entity, _location: LocationSpec, emit: CatalogProcessorEmit): Promise<Entity> {
         if (this.shouldProcessEntity(entity)) {
             try {
@@ -197,7 +212,7 @@ export class PagerDutyEntityProcessor implements CatalogProcessor {
                                 // set on the entity configuration file
                                 // !!!
 
-                                // entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
+                                entity.spec!.dependsOn = refreshServiceDependencyAnnotations(entity, mappings, dependencyIds, emit);
 
                                 break;
                             case "both":

@@ -102,12 +102,16 @@ export class PagerDutyClient {
                 throw new Error(`Failed to remove service relation from service ${serviceId}. PagerDuty API returned a server error. Retrying with the same arguments will not work.`);
             }
 
+            if (response.status === 404) {
+                throw new Error(`Service ${serviceId} or dependencies not found.`);
+            }
+
             if (!response.ok) {
                 throw new Error(await response.text());
             }
         } catch (error) {
-            this.logger.error(`Failed to remove dependencies: ${error}`);
-            throw new Error(`Failed to remove dependencies: ${error}`);
+            this.logger.error(`Failed to remove dependencies from ${serviceId}: ${error}`);
+            throw new Error(`Failed to remove dependencies from ${serviceId}: ${error}`);
         }
     }
 
